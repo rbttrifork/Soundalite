@@ -1,11 +1,41 @@
-const { Events, AuditLogEvent } = require("discord.js");
+const { Events, AuditLogEvent, ChannelType } = require("discord.js");
+const { useQueue } = require("discord-player");
 
 module.exports = {
     name: Events.VoiceStateUpdate,
     once: false,
-    disabled: true,
+    disabled: false,
     async execute(client, logger, oldState, newState) {
         if (this.disabled) return;
+        
+        // Auto-follow: If user moves to a new channel and bot is playing music, move bot to new channel
+        if (oldState.channelId && newState.channelId && oldState.channelId !== newState.channelId) {
+            // User moved to a different channel
+            const guild = newState.guild;
+            const botMember = guild.members.me;
+            
+            // Check if bot is in the old channel
+            if (botMember?.voice?.channelId === oldState.channelId) {
+                // Check if there's an active queue for this guild
+                try {
+                    const queue = useQueue(guild.id);
+                    if (queue && queue.connection) {
+                        // Bot is playing music, move to the new channel
+                        const newChannel = newState.channel;
+                        if (newChannel && newChannel.type === ChannelType.GuildVoice) {
+                            try {
+                                await queue.node.setChannel(newChannel.id);
+                                logger.debug(`Bot moved to ${newChannel.name} following ${newState.member?.user?.tag || "user"}`);
+                            } catch (error) {
+                                logger.warn(`Failed to move bot to new channel: ${error.message}`);
+                            }
+                        }
+                    }
+                } catch (error) {
+                    // Queue might not exist, which is fine
+                }
+            }
+        }
         const userVoiceStateEvents = {};
 
         const setEvent = (key) => (userVoiceStateEvents[key] = true);

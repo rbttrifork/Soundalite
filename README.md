@@ -1,13 +1,3 @@
-<h1 align="center">
-    <br>
-    WD-40 Discord Bot
-    <br><br>
-</h1>
-
-<p align="center">
-    <a href="https://discord.com/oauth2/authorize?client_id=1036485458827415633"><img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&label=Add%20bot&labelColor=1b1c1d&logo=discord&logoColor=white&color=4c73df" alt="Add Cadence Discord bot"></a>&nbsp;
-    <a href="https://discord.gg/pqKE2QZrFM"><img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&label=Support%20Server&labelColor=1b1c1d&logo=discord&logoColor=white&color=4c73df" alt="Discord support server"></a>&nbsp;
-    <a href="https://github.com/iTsMaaT/WD-40/blob/develop/LICENSE"><img src="https://img.shields.io/github/license/mariusbegby/cadence-discord-bot?style=for-the-badge&label=License&labelColor=1b1c1d&logo=github&logoColor=white&color=4c73df" alt="WD-40 bot license"></a>
     <br>
 </p>
 

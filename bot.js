@@ -150,8 +150,16 @@
 
     // Slash command handler
     client.discoveredCommands = [];
+    const enabledCategories = config.get("enabledCommandCategories") || ["music", "utils"];
+
     await loadFiles("./commands/slash/", (slashcommand, fileName) => {
         if ("name" in slashcommand && "execute" in slashcommand && "description" in slashcommand) {
+            // Check category
+            if (slashcommand.category && !enabledCategories.includes(slashcommand.category)) {
+                logger.info(`Skipping slash command [${slashcommand.name}] - Category [${slashcommand.category}] disabled`);
+                return;
+            }
+            
             if (client.slashcommands.get(slashcommand.name)) throw new Error(`Slash command or alias [${slashcommand.name}] already exists`);
             client.slashcommands.set(slashcommand.name, slashcommand);
             client.discoveredCommands.push(slashcommand);
@@ -163,6 +171,12 @@
     // Text command handler
     await loadFiles("./commands/text/", (command) => {
         try {
+            // Check category
+            if (command.category && !enabledCategories.includes(command.category)) {
+               // logger.info(`Skipping text command [${command.name}] - Category [${command.category}] disabled`);
+                return;
+            }
+
             if (command.description.length > 100) throw new Error(`Text command [${command.name}] description is too long (${command.description.length} characters, max 100)\n${command.filePath}`); 
             command.isAlias = false;
             command.lastExecutionTime = 1000;

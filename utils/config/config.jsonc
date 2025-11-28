@@ -1,8 +1,6 @@
 {
-
     // Warn if the configuration is not part of the base configuration
     "warnForConfigNotInBaseConfig": true,
-
     /*
     Types of activities with their corresponding IDs
     - Playing:   0
@@ -12,84 +10,62 @@
     - Custom:    4
     - Competing: 5
     */
-
     // List of activity statuses for the bot
     "activities": [
-        { "type": 2, "name": ">help" },
-        { "type": 2, "name": "your freaky songs" },
-        { "type": 2, "name": "your freaky playlists" },
-        { "type": 4, "name": ">help | Time to be annoying!" },
-        { "type": 4, "name": "Do >help for SEX!" },
-        { "type": 5, "name": "I am the best, you cannot even compare" },
-        { "type": 4, "name": "I think, therefore I think" },
-        { "type": 4, "name": "Anon, 'tis time to annoy!" },
-        { "type": 4, "name": "Nitro is kinda mid ngl" },
-        { "type": 4, "name": "Me omw (on my way) to do >help" },
-        { "type": 4, "name": "You have a {statusChance}% chance to see this" },
-        { "type": 4, "name": "There is {statusCount} other statuses" },
-        { "type": 4, "name": "Tokebac icitte" },
-        { "type": 4, "name": "Don't go on page 5 of >help!" },
-        { "type": 4, "name": "*you're" },
-        { "type": 4, "name": "The time has cum" },
-        { "type": 4, "name": "bonjour" },
-        { "type": 4, "name": "Use me pwease UwU" },
-        { "type": 4, "name": "nuzzles *breaks your spine*" },
-        { "type": 4, "name": "That's the gros sourire message" },
-        { "type": 4, "name": "Barbeque bacon burger" },
-        { "type": 4, "name": "Give suggestions! (I'm desperate) | >suggestion" },
-        { "type": 4, "name": "Do you know who else suffers from dimentia?" },
-        { "type": 4, "name": "Fuck Mee6" },
-        { "type": 4, "name": "Amongst Us" },
-        { "type": 4, "name": "Ferme ta yeule" },
-        { "type": 2, "name": "Yes, enqueued is a word." },
-        { "type": 4, "name": "{ipAddress}" },
-        { "type": 4, "name": "Currently in {guildCount} guilds" },
-        { "type": 4, "name": "fr fr ong no cap" },
-        { "type": 4, "name": "You fucking bitch" },
-        { "type": 0, "name": "Minecraft, the best game ever." },
-        { "type": 0, "name": "Cookie Clicker" },
-        { "type": 4, "name": "The byte of 1010111" },
-        { "type": 4, "name": "CDUjkju9sy" }
+        {
+            "type": 2,
+            "name": "/help"
+        },
+        {
+            "type": 2,
+            "name": "High Quality Music"
+        },
+        {
+            "type": 0,
+            "name": "Soundalite"
+        },
+        {
+            "type": 3,
+            "name": "your requests"
+        }
     ],
-    
     "defaultPrefix": ">",
     "defaultResponses": false,
     // Default AI personality of the bot
-    "defaultPersonality": "Neutral",
-
+    "defaultPersonality": "Helpful Assistant",
     "defaultEmbedColors": {
-        "success": "#00FF00", 
+        "success": "#00FF00",
         "error": "#FF0000",
         "warning": "#FFFF00",
         "info": "#FFFFFF"
     },
-
     "cronJobs": {
         "dailyReregister": "0 */12 * * *",
         "activityStatusRotator": "0 3 * * *"
     },
-    
     "timeZone": "America/Toronto",
     "locale": "en-US",
-
     "defaultSuperuserState": false,
     "defaultDebugState": false,
-
     // Automatically match commands even if not exact
     "autoCommandMatch": true,
-
     // Base cooldown time for commands (in milliseconds)
     "baseCommandCooldown": 3000,
-
     // Log rate-limited events
     "logRateLimited": false,
-
     // Default Gemini model for AI interactions
     "defaultGeminiModel": "gemini-2.0-flash-lite",
-
+    // Categories of commands to enable (if a command has a category not in this list, it will not be loaded)
+    "enabledCommandCategories": [
+        "music",
+        "utils"
+    ],
     "discordPlayer": {
         // Supported file extensions for the player (in the ./music folder)
-        "supportedFileExtensions": ["mp3", "m4a"],
+        "supportedFileExtensions": [
+            "mp3",
+            "m4a"
+        ],
         "dailyReregister": false,
         "logPlayerEvents": false,
         "logQueueEvents": false,
@@ -97,34 +73,34 @@
         // Path to FFmpeg binary, null if global
         "ffmpegPath": null,
         "globalPlayerNodeOptions": {
-            "disableSeeker": false,         // Disable seeking in the player
+            "disableSeeker": false, // Disable seeking in the player
             "volume": 50,
-            "maxSize": 10000,               // Maximum size of the queue
-            "bufferingTimeout": 15000,      // Timeout for buffering (in ms)
-            "leaveOnStop": true,            // Leave the voice channel when stopped
-            "leaveOnStopCooldown": 5000,    // Cooldown before leaving (in ms)
-            "leaveOnEnd": true,             // Leave the voice channel when the queue ends
-            "leaveOnEndCooldown": 15000,    // Cooldown before leaving (in ms)
-            "leaveOnEmpty": true,           // Leave the voice channel when empty
+            "maxSize": 10000, // Maximum size of the queue
+            "bufferingTimeout": 15000, // Timeout for buffering (in ms)
+            "leaveOnStop": true, // Leave the voice channel when stopped
+            "leaveOnStopCooldown": 5000, // Cooldown before leaving (in ms)
+            "leaveOnEnd": true, // Leave the voice channel when the queue ends
+            "leaveOnEndCooldown": 15000, // Cooldown before leaving (in ms)
+            "leaveOnEmpty": true, // Leave the voice channel when empty
             "leaveOnEmptyCooldown": 300000, // Cooldown before leaving (in ms)
-            "skipOnNoStream": true          // Skip tracks if no stream is available
+            "skipOnNoStream": true // Skip tracks if no stream is available
         },
         "extractors": {
             "Subsonic": {
-                "enabled": true,
+                "enabled": false,
                 "canStream": true,
                 "canBridge": false,
                 "priority": 15,
                 "config": {}
             },
             "Deezer": {
-                "enabled": true,
+                "enabled": false,
                 "canStream": true,
                 "canBridge": true,
                 "priority": 12,
                 "config": {
-                    "useAccount": true,             // Use account for Deezer (needed to get streams)
-                    "reloadUserInterval": 32400000  // Interval to reload user data (in ms)
+                    "useAccount": true, // Use account for Deezer (needed to get streams)
+                    "reloadUserInterval": 32400000 // Interval to reload user data (in ms)
                 }
             },
             "Youtubei": {
@@ -133,31 +109,31 @@
                 "canBridge": true,
                 "priority": 11,
                 "config": {
-                    "useSabrAlternative": true,                // Use a local alternative (bypasses all other config)
-                    "logSabrEvents": true,                     // Log SABR events for the SABR alternative
-                    "client": "TV_EMBEDDED",                   // Client type for YouTube
-                    "highWaterMark": 2097152,                  // High water mark for streams
+                    "useSabrAlternative": true, // Use a local alternative (bypasses all other config)
+                    "logSabrEvents": true, // Log SABR events for the SABR alternative
+                    "client": "TV_EMBEDDED", // Client type for YouTube
+                    "highWaterMark": 2097152, // High water mark for streams
                     "attemptYoutubeSearchEvenIfDisabled": {
-                        "usingEmbed": true,                    // Attempt to search using embed
-                        "usingScraping": false                 // Attempt to search using scraping
+                        "usingEmbed": true, // Attempt to search using embed
+                        "usingScraping": false // Attempt to search using scraping
                     },
-                    "useServerAbrStream": false,               // Use server ABR stream
-                    "usePoToken": true,                        // Use TrustedClient token for authentication
-                    "useOnesieRequests": true,                 // Use Onesie requests
-                    "useTVOAuthLogin": true,                   // Use TV OAuth login
-                    "useCookie": false,                        // Use cookies for authentication
-                    "useYTDLFallback": true                    // Use ytdl-core fallback
+                    "useServerAbrStream": false, // Use server ABR stream
+                    "usePoToken": true, // Use TrustedClient token for authentication
+                    "useOnesieRequests": true, // Use Onesie requests
+                    "useTVOAuthLogin": false, // Use TV OAuth login
+                    "useCookie": false, // Use cookies for authentication
+                    "useYTDLFallback": true // Use ytdl-core fallback
                 }
             },
             "Soundcloud": {
-                "enabled": true,
+                "enabled": false,
                 "canStream": true,
                 "canBridge": true,
                 "priority": 10,
                 "config": {}
             },
             "Spotify": {
-                "enabled": true,
+                "enabled": false,
                 "canStream": false,
                 "canBridge": true,
                 "priority": 2,
@@ -166,20 +142,20 @@
                 }
             },
             "AppleMusic": {
-                "enabled": true,
+                "enabled": false,
                 "canStream": false,
                 "canBridge": true,
                 "priority": 1,
                 "config": {}
             },
             "Soundgasm": {
-                "enabled": true,
+                "enabled": false,
                 "canStream": true,
                 "canBridge": false,
                 "priority": 1,
                 "config": {
-                    "skipProbing": true,               // Skip probing for Soundgasm
-                    "attemptAlternateProbing": true    // Attempt alternate probing
+                    "skipProbing": true, // Skip probing for Soundgasm
+                    "attemptAlternateProbing": true // Attempt alternate probing
                 }
             },
             "TTS": {
@@ -188,8 +164,8 @@
                 "canBridge": false,
                 "priority": 0,
                 "config": {
-                    "language": "fr",   // Language for TTS
-                    "slow": true        // Slow mode for TTS
+                    "language": "fr", // Language for TTS
+                    "slow": true // Slow mode for TTS
                 }
             },
             "Attachment": {

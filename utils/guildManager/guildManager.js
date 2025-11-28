@@ -1,6 +1,15 @@
 const withDbManager = require("./withDatabase/withDbGuildManager");
 const withoutDbManager = require("./withoutDatabase/withoutDbGuildManager");
 
+function isValidUrl(string) {
+    try {
+        new URL(string);
+        return true;
+    } catch (_) {
+        return false;
+    }
+}
+
 /**
  * The guildManager module exports a manager for guild-related operations,
  * dynamically selected based on the presence of a database configuration.
@@ -10,6 +19,7 @@ const withoutDbManager = require("./withoutDatabase/withoutDbGuildManager");
  * 
  * @module guildManager
  */
-const guildManager = process.env.DATABASE_URL ? withDbManager : withoutDbManager;
+const hasValidDb = process.env.DATABASE_URL && isValidUrl(process.env.DATABASE_URL);
+const guildManager = hasValidDb ? withDbManager : withoutDbManager;
 
 module.exports = guildManager;

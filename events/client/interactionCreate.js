@@ -249,5 +249,25 @@ module.exports = {
                 logger.error(error);
             }
         }
+
+        // String Select Menu Handling (for play command track selection)
+        else if (interaction.isStringSelectMenu()) {
+            if (interaction.customId.startsWith("play_select_")) {
+                const playCommand = client.slashcommands.get("play");
+                if (playCommand && playCommand.handleSelectMenu) {
+                    try {
+                        await player.context.provide({ guild: interaction.guild }, async () => {
+                            await playCommand.handleSelectMenu(interaction, logger);
+                        });
+                    } catch (error) {
+                        logger.error(`Error handling play select menu:`, error);
+                        await interaction.editReply({
+                            embeds: [embedGenerator.error("An error occurred while processing your selection")],
+                            components: [],
+                        });
+                    }
+                }
+            }
+        }
     },
 };

@@ -29,9 +29,19 @@ const extractors = discordPlayerConfig?.extractors || {};
  * @returns 
  */
 async function initPlayer(client) {
+    let ffmpegPath = discordPlayerConfig?.ffmpegPath;
+    
+    if (!ffmpegPath) {
+        try {
+            ffmpegPath = require("ffmpeg-static");
+        } catch {
+            // ignore
+        }
+    }
+
     return new Player(client, {
         skipFFmpeg: discordPlayerConfig?.skipFFmpeg,
-        ffmpegPath: discordPlayerConfig?.ffmpegPath,
+        ffmpegPath: ffmpegPath,
     });
 }
 
@@ -42,11 +52,19 @@ async function initPlayer(client) {
  * @returns 
  */
 async function registerExtractors(player) {
-    const innerTubeInstance = await Innertube.create({
-        client_type: ClientType.TV_EMBEDDED,
-    });
+    let innerTubeInstance = null;
+    if (extractors.Youtubei.config.useTVOAuthLogin && process.env.YOUTUBE_ACCESS_STRING) {
+        try {
+            innerTubeInstance = await Innertube.create({
+                client_type: ClientType.TV_EMBEDDED,
+            });
 
-    innerTubeInstance.session.signIn(tokenToObject(process.env.YOUTUBE_ACCESS_STRING));
+            innerTubeInstance.session.signIn(tokenToObject(process.env.YOUTUBE_ACCESS_STRING));
+        } catch (error) {
+            logger.error("Failed to initialize Youtube Innertube with OAuth:", error);
+        }
+    }
+    
     const ffmpegFilters = discordPlayerConfig?.ffmpegFilters || {};
     for (const filter of Object.entries(ffmpegFilters)) AudioFilters.define(filter[0], filter[1]);
 
@@ -92,7 +110,11 @@ async function registerExtractors(player) {
         logger.info("Loading YoutubeiExtractor extractor...");
         if (extractors.Youtubei.config.useSabrAlternative) {
             const ytExt = await player.extractors.register(YoutubeSabrExtractor, { cookies: process.env.YOUTUBE_COOKIE, logSabrEvents: extractors.Youtubei.config.logSabrEvents });
-            ytExt.priority = extractors.Youtubei.priority ?? ytExt.priority;
+            if (ytExt) {
+                ytExt.priority = extractors.Youtubei.priority ?? ytExt.priority;
+            } else {
+                logger.error("YoutubeSabrExtractor failed to register (returned null)");
+            }
         } else {
         
             const tempYtExt = await player.extractors.register(YoutubeiExtractor, {

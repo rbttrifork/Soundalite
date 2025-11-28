@@ -30,8 +30,8 @@ const checkBotVersion = function() {
         logger.warning("Changelog version: " + changelogLatestVersion.join("."));
         logger.warning("Package.json version: " + packageJSONVersion.join("."));
         logger.warning("Please update the bot version so they both match");
-        logger.warning("Exiting...");
-        process.exit(0);
+        // logger.warning("Exiting...");
+        // process.exit(0);
     }
 
     logger.info("Bot version is up to date");

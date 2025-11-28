@@ -1,0 +1,22 @@
+# Railway ignore file (similar to .gitignore)
+node_modules
+.env
+.env.local
+*.log
+.DS_Store
+.vscode
+.idea
+*.code-workspace
+tinker.js
+tinker2.js
+utils/reddit/redditConf.json
+music/
+utils/temp/
+utils/commandManifest.json
+.git
+.gitignore
+README.md
+CHANGELOG.md
+changelogs.json
+generateInvite.js
+
