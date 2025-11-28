@@ -14,6 +14,6 @@ COPY . .
 # Expose port
 EXPOSE 3000
 
-# Start the SPA server
-CMD ["npm", "run", "serve"]
+# Start the SPA server directly (bypasses npm scripts)
+CMD ["node", "server.js"]
 
