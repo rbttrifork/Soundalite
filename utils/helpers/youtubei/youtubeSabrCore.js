@@ -1,4 +1,14 @@
-const { Constants, YTNodes } = require("youtubei.js");
+// Dynamic import for ES module
+let Constants, YTNodes;
+async function loadYoutubei() {
+    if (!Constants) {
+        const youtubei = await import("youtubei.js");
+        Constants = youtubei.Constants;
+        YTNodes = youtubei.YTNodes;
+    }
+    return { Constants, YTNodes };
+}
+
 const { EnabledTrackTypes, buildSabrFormat } = require("googlevideo/utils");
 const { SabrStream } = require("googlevideo/sabr-stream");
 const { Readable, PassThrough, once } = require("stream");
@@ -47,6 +57,7 @@ function toNodeReadable(stream) {
  * @returns {Promise<Readable>} The SABR stream
  */
 async function createSabrStream(videoId, cookies, logSabrEvents = false) {
+    await loadYoutubei();
     const innertube = await getInnertube(cookies);
     let accountInfo = null;
 

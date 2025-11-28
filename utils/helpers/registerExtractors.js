@@ -10,14 +10,24 @@ const { AppleMusicExtractor } = require("discord-player-applemusic");
 const { SubsonicExtractor } = require("discord-player-subsonic");
 const { distubePluginToExtractor } = require("@utils/helpers/distubePluginToDiscordPlayerExtractor.js");
 const { YoutubePlugin } = require("./distubeYoutubeExtractor.js");
-const { Innertube, ClientType } = require("youtubei.js");
 const { YoutubeSabrExtractor } = require("./youtubei/youtubeiExtractor.js");
 const ytdl = require("@distube/ytdl-core");
 const config = require("@utils/config/configUtils");
 const logger = require("@utils/log");
 
-const { Log } = require("youtubei.js");
-Log.setLevel(Log.Level.NONE);
+// Dynamic import for youtubei.js ES module - will be loaded when needed
+let Innertube, ClientType, Log;
+
+async function loadYoutubei() {
+    if (!Innertube) {
+        const youtubei = await import("youtubei.js");
+        Innertube = youtubei.Innertube;
+        ClientType = youtubei.ClientType;
+        Log = youtubei.Log;
+        Log.setLevel(Log.Level.NONE);
+    }
+    return { Innertube, ClientType, Log };
+}
 
 const discordPlayerConfig = config.get("discordPlayer");
 const extractors = discordPlayerConfig?.extractors || {};
@@ -55,6 +65,7 @@ async function registerExtractors(player) {
     let innerTubeInstance = null;
     if (extractors.Youtubei.config.useTVOAuthLogin && process.env.YOUTUBE_ACCESS_STRING) {
         try {
+            await loadYoutubei();
             innerTubeInstance = await Innertube.create({
                 client_type: ClientType.TV_EMBEDDED,
             });

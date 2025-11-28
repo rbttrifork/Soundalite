@@ -1,13 +1,21 @@
 const { tokenToObject } = require("discord-player-youtubei");
 const { DisTubeError, ExtractorPlugin, Playlist, Song } = require("distube");
-const {
-    Innertube,
-    UniversalCache,
-    Log,
-    ClientType,
-    Platform,
-    YTNodes,
-} = require("youtubei.js");
+
+// Dynamic import for ES module
+let Innertube, UniversalCache, Log, ClientType, Platform, YTNodes;
+
+async function loadYoutubei() {
+    if (!Innertube) {
+        const youtubei = await import("youtubei.js");
+        Innertube = youtubei.Innertube;
+        UniversalCache = youtubei.UniversalCache;
+        Log = youtubei.Log;
+        ClientType = youtubei.ClientType;
+        Platform = youtubei.Platform;
+        YTNodes = youtubei.YTNodes;
+    }
+    return { Innertube, UniversalCache, Log, ClientType, Platform, YTNodes };
+}
 
 function extractYoutubeId(url) {
     const regex =
@@ -38,8 +46,6 @@ function extractYoutubeId(url) {
     };
 }
 
-Log.setLevel(Log.Level.NONE);
-
 class YoutubePlugin extends ExtractorPlugin {
     constructor(configs) {
         super();
@@ -50,6 +56,11 @@ class YoutubePlugin extends ExtractorPlugin {
 
     async init(distube) {
         super.init(distube);
+        
+        // Load youtubei.js ES module
+        await loadYoutubei();
+        Log.setLevel(Log.Level.NONE);
+        
         // Info instance: IOS, no login
         this.ytInfo = await Innertube.create({
             client_type: ClientType.IOS,
@@ -78,6 +89,8 @@ class YoutubePlugin extends ExtractorPlugin {
 
     async getStreamURL(song) {
         try {
+            // Ensure youtubei is loaded
+            await loadYoutubei();
             if (!song.url)
             {throw new DisTubeError(
                 "INVALID_SONG",
@@ -103,6 +116,8 @@ class YoutubePlugin extends ExtractorPlugin {
     }
 
     async searchSong(query, options) {
+        // Ensure youtubei is loaded
+        await loadYoutubei();
         const result = await this.ytInfo.search(query.trim(), {
             type: "video",
         });
@@ -111,6 +126,8 @@ class YoutubePlugin extends ExtractorPlugin {
     }
 
     async resolve(url, options) {
+        // Ensure youtubei is loaded
+        await loadYoutubei();
         const validated = extractYoutubeId(url);
         if (!validated.id) throw new DisTubeError("CANNOT_RESOLVE_SONG");
         if (validated.isPlaylist) {
