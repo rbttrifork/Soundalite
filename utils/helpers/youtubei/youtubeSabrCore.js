@@ -1,5 +1,7 @@
 // Dynamic import for ES module
 let Constants, YTNodes;
+let EnabledTrackTypes, buildSabrFormat, SabrStream;
+
 async function loadYoutubei() {
     if (!Constants) {
         const youtubei = await import("youtubei.js");
@@ -9,16 +11,27 @@ async function loadYoutubei() {
     return { Constants, YTNodes };
 }
 
-const { EnabledTrackTypes, buildSabrFormat } = require("googlevideo/utils");
-const { SabrStream } = require("googlevideo/sabr-stream");
+async function loadGooglevideo() {
+    if (!EnabledTrackTypes) {
+        const googlevideoUtils = await import("googlevideo/utils");
+        const googlevideoSabr = await import("googlevideo/sabr-stream");
+        EnabledTrackTypes = googlevideoUtils.EnabledTrackTypes;
+        buildSabrFormat = googlevideoUtils.buildSabrFormat;
+        SabrStream = googlevideoSabr.SabrStream;
+    }
+    return { EnabledTrackTypes, buildSabrFormat, SabrStream };
+}
+
 const { Readable, PassThrough, once } = require("stream");
 const { getWebPoMinter, invalidateWebPoMinter, generateDataSyncTokens } = require("./poTokenGenerator.js");
 const { getInnertube } = require("./getInnertube.js");
 
-const DEFAULT_OPTIONS = {
-    audioQuality: "AUDIO_QUALITY_MEDIUM",
-    enabledTrackTypes: EnabledTrackTypes.AUDIO_ONLY,
-};
+function getDefaultOptions() {
+    return {
+        audioQuality: "AUDIO_QUALITY_MEDIUM",
+        enabledTrackTypes: EnabledTrackTypes.AUDIO_ONLY,
+    };
+}
 
 /**
  * Converts a stream to a Node.js Readable stream
@@ -58,6 +71,7 @@ function toNodeReadable(stream) {
  */
 async function createSabrStream(videoId, cookies, logSabrEvents = false) {
     await loadYoutubei();
+    await loadGooglevideo();
     const innertube = await getInnertube(cookies);
     let accountInfo = null;
 
@@ -150,7 +164,7 @@ async function createSabrStream(videoId, cookies, logSabrEvents = false) {
     });
 
     // === Start SABR stream ===
-    const { audioStream } = await serverAbrStream.start(DEFAULT_OPTIONS);
+    const { audioStream } = await serverAbrStream.start(getDefaultOptions());
     const nodeStream = toNodeReadable(audioStream);
 
     return nodeStream;
