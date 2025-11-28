@@ -222,10 +222,37 @@ module.exports = {
             // Auto-select first result if single result or direct URL
             await playTrack(interaction, research, null, shuffle, playnext, queryType, string, playerConfig, logger);
         } catch (err) {
-            logger.error(err);
-            await interaction.editReply({ 
-                embeds: [embedGenerator.error("Failed to fetch / play the requested track")] 
-            });
+            logger.error(`Error in /play command: ${err.message}`, err);
+            
+            // Provide more specific error messages
+            let errorMessage = "Failed to fetch / play the requested track";
+            if (err.message?.includes("No results found")) {
+                errorMessage = "No results found for your search. Try a different query or URL.";
+            } else if (err.message?.includes("timeout")) {
+                errorMessage = "The request timed out. Please try again.";
+            } else if (err.message?.includes("network") || err.message?.includes("ECONNREFUSED")) {
+                errorMessage = "Network error. Please check your connection and try again.";
+            } else if (err.message?.includes("permission") || err.message?.includes("403")) {
+                errorMessage = "Permission denied. The bot may not have access to this content.";
+            }
+            
+            try {
+                await interaction.editReply({ 
+                    embeds: [embedGenerator.error(errorMessage)],
+                    components: [],
+                });
+            } catch (replyError) {
+                logger.error(`Error sending error reply: ${replyError.message}`);
+                // Try followUp as fallback
+                try {
+                    await interaction.followUp({ 
+                        embeds: [embedGenerator.error(errorMessage)],
+                        flags: 64, // Ephemeral
+                    });
+                } catch (followUpError) {
+                    logger.error(`Error sending followUp: ${followUpError.message}`);
+                }
+            }
         }
     },
 };
@@ -280,87 +307,169 @@ module.exports.handleSelectMenu = async (interaction, logger) => {
 };
 
 async function playTrack(interaction, research, choice, shuffle, playnext, queryType, string, playerConfig, logger) {
-    const player = useMainPlayer();
-    const queue = useQueue();
+    try {
+        const player = useMainPlayer();
+        const queue = useQueue(interaction.guild.id);
 
-    if (choice === -1) {
-        return await interaction.editReply({ 
-            embeds: [embedGenerator.warning("Play request cancelled")],
-            components: [],
-        });
-    }
+        // Validate voice channel
+        if (!interaction.member?.voice?.channel) {
+            return await interaction.editReply({ 
+                embeds: [embedGenerator.error("You must be in a voice channel to play music.")],
+                components: [],
+            });
+        }
 
-    if (research?.tracks?.length + (queue?.size ?? 0) > playerConfig.globalPlayerNodeOptions.maxSize) {
-        return await interaction.editReply({ 
-            embeds: [embedGenerator.warning(`Cannot enqueue more than ${playerConfig.globalPlayerNodeOptions.maxSize} tracks.`)],
-            components: [],
-        });
-    }
+        // Validate research results
+        if (!research || !research.tracks || research.tracks.length === 0) {
+            return await interaction.editReply({ 
+                embeds: [embedGenerator.error("No tracks found to play.")],
+                components: [],
+            });
+        }
 
-    if (shuffle && choice === null) await research?.tracks?.shuffle();
+        if (choice === -1) {
+            return await interaction.editReply({ 
+                embeds: [embedGenerator.warning("Play request cancelled")],
+                components: [],
+            });
+        }
 
-    let finalTrack, finalSearchResult;
-    if (playnext && queue) {
-        const tracksToInsert = choice !== null ? [research.tracks[choice]] : research.tracks.reverse();
-        for (const track of tracksToInsert) 
-            queue.insertTrack(track, 0);
+        // Validate choice if provided
+        if (choice !== null && (choice < 0 || choice >= research.tracks.length)) {
+            return await interaction.editReply({ 
+                embeds: [embedGenerator.error("Invalid track selection. Please try again.")],
+                components: [],
+            });
+        }
+
+        // Check queue size limit
+        const maxQueueSize = playerConfig?.globalPlayerNodeOptions?.maxSize || 10000;
+        const tracksToAdd = choice !== null ? 1 : research.tracks.length;
+        const currentQueueSize = queue?.size || 0;
         
-        finalTrack = research.tracks[choice ?? 0];
-        finalSearchResult = research;
-    } else {
-        const playResult = await player.play(
-            interaction.member.voice.channel.id,
-            choice !== null ? research.tracks[choice] : research,
-            {
-                nodeOptions: {
-                    metadata: {
-                        channel: interaction.channel,
-                        client: interaction.guild.members.me,
-                        requestedBy: interaction.user,
-                        guild: interaction.guild,
-                        probableBridgeSource: getProbableBridgeSource(playerConfig, queryType.canStream),
+        if (tracksToAdd + currentQueueSize > maxQueueSize) {
+            return await interaction.editReply({ 
+                embeds: [embedGenerator.warning(`Cannot enqueue more than ${maxQueueSize} tracks. Current queue: ${currentQueueSize}, trying to add: ${tracksToAdd}`)],
+                components: [],
+            });
+        }
+
+        // Shuffle if requested
+        if (shuffle && choice === null && research.tracks.length > 1) {
+            try {
+                research.tracks.shuffle();
+            } catch (shuffleError) {
+                logger.warning(`Error shuffling tracks: ${shuffleError.message}`);
+            }
+        }
+
+        let finalTrack, finalSearchResult;
+        
+        try {
+            if (playnext && queue) {
+                const tracksToInsert = choice !== null ? [research.tracks[choice]] : research.tracks.reverse();
+                for (const track of tracksToInsert) {
+                    try {
+                        queue.insertTrack(track, 0);
+                    } catch (insertError) {
+                        logger.error(`Error inserting track: ${insertError.message}`);
+                        throw new Error("Failed to insert track into queue");
+                    }
+                }
+                
+                finalTrack = research.tracks[choice ?? 0];
+                finalSearchResult = research;
+            } else {
+                const trackToPlay = choice !== null ? research.tracks[choice] : research;
+                
+                const playResult = await player.play(
+                    interaction.member.voice.channel.id,
+                    trackToPlay,
+                    {
+                        nodeOptions: {
+                            metadata: {
+                                channel: interaction.channel,
+                                client: interaction.guild.members.me,
+                                requestedBy: interaction.user,
+                                guild: interaction.guild,
+                                probableBridgeSource: getProbableBridgeSource(playerConfig, queryType.canStream),
+                            },
+                            verifyFallbackStream: false,
+                            ...playerConfig.globalPlayerNodeOptions,
+                        },
                     },
-                    verifyFallbackStream: false,
-                    ...playerConfig.globalPlayerNodeOptions,
-                },
-            },
-        );
-        finalTrack = playResult.track;
-        finalSearchResult = playResult.searchResult;
-    }
+                );
+                
+                if (!playResult || !playResult.track) {
+                    throw new Error("Play result did not return a valid track");
+                }
+                
+                finalTrack = playResult.track;
+                finalSearchResult = playResult.searchResult || research;
+            }
+        } catch (playError) {
+            logger.error(`Error playing track: ${playError.message}`, playError);
+            return await interaction.editReply({ 
+                embeds: [embedGenerator.error(`Failed to play track: ${playError.message || "Unknown error"}`)],
+                components: [],
+            });
+        }
 
-    logger.music(`Playing [${finalTrack.title}] in [${interaction.member.voice.channel.name}]`);
+        if (!finalTrack) {
+            return await interaction.editReply({ 
+                embeds: [embedGenerator.error("No track was selected or played.")],
+                components: [],
+            });
+        }
 
-    const embed = embedGenerator.info({
-        title: `${finalSearchResult.hasPlaylist() ? "Playlist" : "Track"} ${!queue?.currentTrack ? "now playing!" : "enqueued!"}`,
-        thumbnail: { url: finalTrack.thumbnail },
-        description: isURL(finalTrack.url) ? `[${finalTrack.title}](${finalTrack.url})` : finalTrack.title,
-        fields: [
-            { name: "Pre-shuffled", value: shuffle ? "Yes" : "No", inline: true },
-            { name: "Force play next", value: playnext && queue ? "Yes" : "No", inline: true },
-            { name: "Extractor", value: `\`${finalTrack.extractor?.identifier || "N/A"}\`` },
-            { name: "Probable bridge source ( [\\▶] = upon fail, falls back to...)", value: getProbableBridgeSource(playerConfig, queryType.canStream) },
-        ],
-        footer: { text: `Loop mode: ${getLoopMode(queue)}` },
-    }).withAuthor(interaction.user);
+        logger.music(`Playing [${finalTrack.title}] in [${interaction.member.voice.channel.name}]`);
 
-    if (finalSearchResult?.playlist) {
-        embed.data.fields.push({ 
-            name: "Playlist", 
-            value: `[${finalSearchResult.playlist.title}](${finalSearchResult.playlist.url})` 
+        const updatedQueue = useQueue(interaction.guild.id);
+        const embed = embedGenerator.info({
+            title: `${finalSearchResult?.hasPlaylist() ? "Playlist" : "Track"} ${!updatedQueue?.currentTrack ? "now playing!" : "enqueued!"}`,
+            thumbnail: { url: finalTrack.thumbnail || null },
+            description: isURL(finalTrack.url) ? `[${finalTrack.title}](${finalTrack.url})` : (finalTrack.title || "Unknown track"),
+            fields: [
+                { name: "Pre-shuffled", value: shuffle ? "Yes" : "No", inline: true },
+                { name: "Force play next", value: playnext && queue ? "Yes" : "No", inline: true },
+                { name: "Extractor", value: `\`${finalTrack.extractor?.identifier || "N/A"}\``, inline: false },
+                { name: "Probable bridge source ( [\\▶] = upon fail, falls back to...)", value: getProbableBridgeSource(playerConfig, queryType.canStream) || "N/A", inline: false },
+            ],
+            footer: { text: `Loop mode: ${getLoopMode(updatedQueue)}` },
+        }).withAuthor(interaction.user);
+
+        if (finalSearchResult?.playlist) {
+            embed.data.fields.push({ 
+                name: "Playlist", 
+                value: `[${finalSearchResult.playlist.title}](${finalSearchResult.playlist.url})` 
+            });
+        }
+
+        await interaction.editReply({ 
+            embeds: [embed],
+            components: [],
         });
-    }
 
-    await interaction.editReply({ 
-        embeds: [embed],
-        components: [],
-    });
-
-    if (!playerConfig.extractors.Youtubei.enabled && (string.includes("youtube.com") || string.includes("youtu.be")) && playerConfig.extractors.Youtubei.config.attemptYoutubeSearchEvenIfDisabled.usingEmbed) {
-        await interaction.followUp({ 
-            embeds: [embedGenerator.warning("Youtube links might not be accurate as YouTube extraction is disabled")],
-            flags: MessageFlags.Ephemeral,
-        });
+        if (!playerConfig.extractors.Youtubei.enabled && (string.includes("youtube.com") || string.includes("youtu.be")) && playerConfig.extractors.Youtubei.config.attemptYoutubeSearchEvenIfDisabled.usingEmbed) {
+            try {
+                await interaction.followUp({ 
+                    embeds: [embedGenerator.warning("Youtube links might not be accurate as YouTube extraction is disabled")],
+                    flags: MessageFlags.Ephemeral,
+                });
+            } catch (followUpError) {
+                logger.warning(`Error sending YouTube warning: ${followUpError.message}`);
+            }
+        }
+    } catch (error) {
+        logger.error(`Error in playTrack function: ${error.message}`, error);
+        try {
+            await interaction.editReply({ 
+                embeds: [embedGenerator.error("An unexpected error occurred while playing the track. Please try again.")],
+                components: [],
+            });
+        } catch (replyError) {
+            logger.error(`Error sending error reply in playTrack: ${replyError.message}`);
+        }
     }
 }
 

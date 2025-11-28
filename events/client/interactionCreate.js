@@ -261,11 +261,30 @@ module.exports = {
                         });
                     } catch (error) {
                         logger.error(`Error handling play select menu:`, error);
-                        await interaction.editReply({
-                            embeds: [embedGenerator.error("An error occurred while processing your selection")],
-                            components: [],
-                        });
+                        try {
+                            await interaction.editReply({
+                                embeds: [embedGenerator.error("An error occurred while processing your selection")],
+                                components: [],
+                            });
+                        } catch (replyError) {
+                            logger.error(`Error replying to select menu: ${replyError.message}`);
+                        }
                     }
+                }
+            }
+        }
+
+        // Button Interaction Handling (for queue pagination, etc.)
+        else if (interaction.isButton()) {
+            // Queue pagination buttons are handled in the queue command's collector
+            // But we can add other button handlers here if needed
+            if (interaction.customId.startsWith("queue_")) {
+                // Queue buttons are handled by the collector in the queue command
+                // This is just a fallback in case the collector times out
+                try {
+                    await interaction.deferUpdate();
+                } catch (error) {
+                    logger.warning(`Button interaction already handled or expired: ${error.message}`);
                 }
             }
         }

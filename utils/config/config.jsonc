@@ -80,7 +80,7 @@
             "leaveOnStop": true, // Leave the voice channel when stopped
             "leaveOnStopCooldown": 5000, // Cooldown before leaving (in ms)
             "leaveOnEnd": true, // Leave the voice channel when the queue ends
-            "leaveOnEndCooldown": 15000, // Cooldown before leaving (in ms)
+            "leaveOnEndCooldown": 300000, // Cooldown before leaving (in ms) - 5 minutes idle after last song
             "leaveOnEmpty": true, // Leave the voice channel when empty
             "leaveOnEmptyCooldown": 300000, // Cooldown before leaving (in ms)
             "skipOnNoStream": true // Skip tracks if no stream is available

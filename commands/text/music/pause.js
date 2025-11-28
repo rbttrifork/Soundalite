@@ -10,17 +10,51 @@ module.exports = {
     inVoiceChannel: true,
     inSameVoiceChannel: true,
     async execute(logger, client, message, args, flags) {
-        const queue = useQueue();
-        const timeline = useTimeline();
+        try {
+            const queue = useQueue(message.guild.id);
+            const timeline = useTimeline(message.guild.id);
 
-        if (!queue || !queue.currentTrack) return await message.reply({ embeds: [embedGenerator.error("There is nothing in the queue right now.")] });
+            if (!queue || !queue.currentTrack) {
+                return await message.reply({ 
+                    embeds: [embedGenerator.error("There is nothing in the queue right now.")] 
+                });
+            }
 
-        timeline.paused ? timeline.resume() : timeline.pause();
+            if (!timeline) {
+                return await message.reply({ 
+                    embeds: [embedGenerator.error("Unable to access playback timeline.")] 
+                });
+            }
 
-        const embed = embedGenerator.info({
-            title: getPauseMode(timeline),
-        }).withAuthor(message.author);
+            const wasPaused = timeline.paused;
+            try {
+                if (wasPaused) {
+                    timeline.resume();
+                } else {
+                    timeline.pause();
+                }
+            } catch (pauseError) {
+                logger.error(`Error toggling pause: ${pauseError.message}`, pauseError);
+                return await message.reply({ 
+                    embeds: [embedGenerator.error("Failed to pause/resume playback. Please try again.")] 
+                });
+            }
 
-        await message.reply({ embeds: [embed] });
+            const embed = embedGenerator.info({
+                title: getPauseMode(timeline),
+                description: wasPaused ? "Resumed playback" : "Paused playback",
+            }).withAuthor(message.author);
+
+            await message.reply({ embeds: [embed] });
+        } catch (error) {
+            logger.error(`Error in pause command: ${error.message}`, error);
+            try {
+                await message.reply({ 
+                    embeds: [embedGenerator.error("An error occurred while pausing/resuming. Please try again.")] 
+                });
+            } catch (replyError) {
+                logger.error(`Error sending error reply: ${replyError.message}`);
+            }
+        }
     },
 }; 
