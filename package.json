@@ -6,6 +6,8 @@
   "scripts": {
     "start": "node --openssl-legacy-provider --no-deprecation index.js",
     "start:dev": "node --openssl-legacy-provider --trace-deprecation --trace-warnings index.js",
+    "serve": "node server.js",
+    "serve:dev": "node --trace-deprecation --trace-warnings server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "lint": "eslint --no-fix .",
     "drizzle:generate": "npx drizzle-kit generate:pg --out ./utils/db/ --schema ./schema/schema.js",
@@ -55,6 +57,7 @@
     "distube": "^5.0.7",
     "dotenv": "^16.6.1",
     "drizzle-orm": "^0.44.2",
+    "express": "^4.18.2",
     "ffmpeg-static": "^5.3.0",
     "googlevideo": "^4.0.4",
     "module-alias": "^2.2.3",

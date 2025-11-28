@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Soundalite - Retro Bot Invite</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="noise"></div>
+    
+    <div class="container">
+        <div class="screen">
+            <div class="screen-border">
+                <div class="screen-content">
+                    <!-- Title Screen -->
+                    <div class="title-screen" id="titleScreen">
+                        <div class="logo">
+                            <h1 class="pixel-text">SOUNDALITE</h1>
+                            <div class="subtitle">MUSIC BOT</div>
+                        </div>
+                        <div class="invite-button-container">
+                            <button class="invite-button" id="inviteButtonMain">
+                                <span>INVITE BOT</span>
+                                <div class="button-glow"></div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Invite Screen -->
+                    <div class="invite-screen hidden" id="inviteScreen">
+                        <div class="screen-header">
+                            <h2 class="pixel-text">INVITE TO SERVER</h2>
+                        </div>
+                        <div class="invite-content">
+                            <div class="bot-info">
+                                <div class="bot-avatar">
+                                    <div class="avatar-placeholder">🤖</div>
+                                </div>
+                                <div class="bot-details">
+                                    <h3>SOUNDALITE</h3>
+                                    <p>High-quality Discord music bot</p>
+                                </div>
+                            </div>
+                            <div class="permissions-list">
+                                <h4>REQUIRED PERMISSIONS:</h4>
+                                <ul>
+                                    <li>🎵 Play Music</li>
+                                    <li>🔊 Voice Channel Access</li>
+                                    <li>💬 Send Messages</li>
+                                    <li>📝 Manage Messages</li>
+                                    <li>🎭 Manage Expressions</li>
+                                    <li>⚙️ Manage Webhooks</li>
+                                </ul>
+                            </div>
+                            <div class="invite-button-container">
+                                <button class="invite-button" id="inviteButton">
+                                    <span>INVITE TO DISCORD</span>
+                                    <div class="button-glow"></div>
+                                </button>
+                            </div>
+                            <div class="back-button">
+                                <button class="nes-button secondary" id="backButton">BACK</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Features Screen -->
+                    <div class="features-screen hidden" id="featuresScreen">
+                        <div class="screen-header">
+                            <h2 class="pixel-text">FEATURES</h2>
+                        </div>
+                        <div class="features-content">
+                            <div class="feature-grid">
+                                <div class="feature-card">
+                                    <div class="feature-icon">🎵</div>
+                                    <h4>MULTI-SOURCE</h4>
+                                    <p>Spotify, YouTube, Deezer & more</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🎮</div>
+                                    <h4>GAMES</h4>
+                                    <p>Blackjack, Hangman & more</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🤖</div>
+                                    <h4>AI FEATURES</h4>
+                                    <p>Powered by Gemini AI</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">⚡</div>
+                                    <h4>AUTO-REACTIONS</h4>
+                                    <p>Customizable per server</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">📱</div>
+                                    <h4>REDDIT INTEGRATION</h4>
+                                    <p>Fetch posts & content</p>
+                                </div>
+                                <div class="feature-card">
+                                    <div class="feature-icon">🎨</div>
+                                    <h4>CUSTOMIZABLE</h4>
+                                    <p>Per-server settings</p>
+                                </div>
+                            </div>
+                            <div class="back-button">
+                                <button class="nes-button secondary" id="backFromFeatures">BACK</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- About Screen -->
+                    <div class="about-screen hidden" id="aboutScreen">
+                        <div class="screen-header">
+                            <h2 class="pixel-text">ABOUT</h2>
+                        </div>
+                        <div class="about-content">
+                            <div class="about-text">
+                                <p>SOUNDALITE is a modern, high-quality Discord music bot built with passion and pixel-perfect precision.</p>
+                                <p>Experience the best music playback, fun games, and AI-powered features all in one retro-styled package.</p>
+                                <div class="stats">
+                                    <div class="stat-item">
+                                        <span class="stat-value">5.13.0</span>
+                                        <span class="stat-label">VERSION</span>
+                                    </div>
+                                    <div class="stat-item">
+                                        <span class="stat-value">∞</span>
+                                        <span class="stat-label">FUN</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="back-button">
+                                <button class="nes-button secondary" id="backFromAbout">BACK</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
+

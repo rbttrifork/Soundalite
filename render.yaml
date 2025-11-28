@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: soundalite-invite
+    env: node
+    buildCommand: npm install
+    startCommand: npm run serve
+    envVars:
+      - key: CLIENT_ID
+        sync: false
+      - key: NODE_ENV
+        value: production
+
