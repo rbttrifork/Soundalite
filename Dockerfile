@@ -11,12 +11,10 @@ RUN npm install --production
 # Copy application files
 COPY . .
 
-# Expose port
+# Expose port (both services may need this)
 EXPOSE 3000
 
-# Set service type environment variable
-ENV SERVICE_TYPE=spa
-
-# Start using the wrapper script
+# Use wrapper script - SERVICE_TYPE env var determines what runs
+# Defaults to 'bot' if not set
 CMD ["node", "start.js"]
 

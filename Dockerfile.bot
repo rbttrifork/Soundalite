@@ -11,6 +11,9 @@ RUN npm install --production
 # Copy application files
 COPY . .
 
-# Start the bot
-CMD ["npm", "start"]
+# Set service type environment variable
+ENV SERVICE_TYPE=bot
+
+# Start using the wrapper script
+CMD ["node", "start.js"]
 
