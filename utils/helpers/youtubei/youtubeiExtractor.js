@@ -67,12 +67,41 @@ class YoutubeSabrExtractor extends BaseExtractor {
             const urlObj = new URL(query);
             const hasList = urlObj.searchParams.has("list");
             const isShortLink = /(^|\.)youtu\.be$/i.test(urlObj.hostname);
-            isPlaylist = hasList && !isShortLink;
-            playlistId = isPlaylist ? urlObj.searchParams.get("list") : null;
+            playlistId = hasList && !isShortLink ? urlObj.searchParams.get("list") : null;
+            // RD* = Radio/Mix playlists are unviewable via API; treat as single video using v= from URL
+            const isUnviewablePlaylistType = playlistId && /^RD/i.test(playlistId);
+            isPlaylist = hasList && !isShortLink && !isUnviewablePlaylistType && playlistId;
 
-            // If playlist detected
+            // If playlist detected (and not an unviewable type like Radio/Mix)
             if (isPlaylist && playlistId) {
-                let playlist = await this.innertube.getPlaylist(playlistId);
+                let playlist;
+                try {
+                    playlist = await this.innertube.getPlaylist(playlistId);
+                } catch (playlistErr) {
+                    const unviewable = playlistErr?.message?.includes("unviewable") || playlistErr?.info?.text?.text === "This playlist type is unviewable.";
+                    if (unviewable && urlObj.searchParams.has("v")) {
+                        const fallbackVideoId = urlObj.searchParams.get("v");
+                        if (fallbackVideoId) {
+                            const info = await this.innertube.getBasicInfo(fallbackVideoId);
+                            const durationMs = (info.basic_info?.duration ?? 0) * 1000;
+                            const trackObj = new Track(context.player, {
+                                title: info.basic_info?.title ?? `YouTube:${fallbackVideoId}`,
+                                author: info.basic_info?.author ?? null,
+                                url: `https://www.youtube.com/watch?v=${fallbackVideoId}`,
+                                thumbnail: info.basic_info?.thumbnail?.[0]?.url ?? null,
+                                duration: Util.buildTimeCode(Util.parseMS(durationMs)),
+                                source: "youtube-sabr",
+                                requestedBy: context.requestedBy ?? null,
+                                raw: {
+                                    basicInfo: info,
+                                    live: info.basic_info?.is_live || false,
+                                },
+                            });
+                            return this.createResponse(null, [trackObj]);
+                        }
+                    }
+                    throw playlistErr;
+                }
                 if (!playlist?.videos?.length) return this.createResponse(null, []);
 
                 const dpPlaylist = new Playlist(context.player, {
